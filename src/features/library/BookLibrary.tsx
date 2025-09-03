@@ -1,5 +1,5 @@
 import React from 'react'
-import './BookLibrary.css'
+import '../../styles/BookLibrary.css'
 
 interface Book {
   id: string

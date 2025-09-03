@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import Header from './components/Header'
-import BookLibrary from './components/BookLibrary'
-import FileUpload from './components/FileUpload'
-import TypingPractice from './components/TypingPractice'
-import { TextContent } from './types'
+import Header from '../shared/layout/Header'
+import BookLibrary from '../features/library/BookLibrary'
+import FileUpload from '../features/upload/FileUpload'
+import TypingPractice from '../features/typing/TypingPractice'
+import { TextContent } from '../types/types'
 
 interface Book {
   id: string

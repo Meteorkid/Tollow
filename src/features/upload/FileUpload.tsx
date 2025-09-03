@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
-import { TextContent } from '../types'
-import './FileUpload.css'
+import { TextContent } from '../../types'
+import { MultiFormatFileProcessor } from '../../utils/fileProcessors'
+import '../../styles/FileUpload.css'
 
 interface FileUploadProps {
   onFileUpload: (textContent: TextContent) => void
@@ -46,32 +47,30 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, onBack }) => {
     try {
       console.log('开始处理文件:', file.name, '大小:', file.size, '类型:', file.type)
       
-      let content = ''
-      let title = file.name.replace(/\.[^/.]+$/, '') // 移除文件扩展名
-      
-      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-        console.log('处理TXT文件')
-        content = await readTextFile(file)
-      } else if (file.name.endsWith('.epub')) {
-        console.log('处理EPUB文件')
-        const epubContent = await readEpubFile(file)
-        content = epubContent.content
-        title = epubContent.title
-      } else {
-        throw new Error(`不支持的文件格式: ${file.type || '未知类型'}。请上传 .txt 或 .epub 文件。`)
+      // 检查文件大小
+      if (!MultiFormatFileProcessor.isFileSizeValid(file)) {
+        throw new Error(`文件过大，最大支持 ${MultiFormatFileProcessor.getFileSizeLimit() / (1024 * 1024)}MB`)
       }
-
-      if (!content || content.trim().length === 0) {
+      
+      // 检查文件格式
+      if (!MultiFormatFileProcessor.isFormatSupported(file.name)) {
+        throw new Error(`不支持的文件格式。支持格式: ${MultiFormatFileProcessor.getSupportedFormats().map(f => f.extension).join(', ')}`)
+      }
+      
+      // 使用多格式处理器处理文件
+      const processedFile = await MultiFormatFileProcessor.processFile(file)
+      
+      if (!processedFile.content || processedFile.content.trim().length === 0) {
         throw new Error('文件内容为空，请检查文件是否正确')
       }
 
-      console.log('文件处理成功，内容长度:', content.length)
+      console.log('文件处理成功，内容长度:', processedFile.content.length)
 
       const textContent: TextContent = {
-        title: title || '未命名文件',
-        content: content.trim(),
+        title: processedFile.title || '未命名文件',
+        content: processedFile.content.trim(),
         source: file.name,
-        type: file.name.endsWith('.epub') ? 'epub' : 'text'
+        type: processedFile.type
       }
 
       onFileUpload(textContent)
@@ -145,7 +144,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, onBack }) => {
         
         <h2 className="text-center mb-4">导入您的练习材料</h2>
         <p className="text-center mb-4">
-          上传文本文件(.txt)或电子书(.epub)，开始您的打字练习之旅
+          上传多种格式的文件，开始您的打字练习之旅
         </p>
         
         {errorMessage && (
@@ -165,7 +164,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, onBack }) => {
           <div className="upload-content">
             <div className="upload-icon">📚</div>
             <h3>拖拽文件到这里或点击选择</h3>
-            <p>支持 .txt 和 .epub 格式</p>
+            <p>支持多种文档格式</p>
             <button className="btn btn-primary" disabled={isProcessing}>
               {isProcessing ? '处理中...' : '选择文件'}
             </button>
@@ -175,7 +174,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, onBack }) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.epub"
+          accept=".txt,.epub,.doc,.docx,.pdf"
           onChange={handleFileInput}
           style={{ display: 'none' }}
         />
@@ -191,20 +190,58 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, onBack }) => {
           </ul>
         </div>
 
+        <div className="supported-formats">
+          <h4>支持的文件格式：</h4>
+          <div className="formats-grid">
+            {MultiFormatFileProcessor.getSupportedFormats().map((format) => (
+              <div key={format.extension} className="format-item">
+                <div className="format-icon">
+                  {format.extension === 'txt' && '📄'}
+                  {format.extension === 'epub' && '📚'}
+                  {format.extension === 'doc' && '📝'}
+                  {format.extension === 'docx' && '📝'}
+                  {format.extension === 'pdf' && '📋'}
+                </div>
+                <div className="format-info">
+                  <strong>.{format.extension}</strong>
+                  <span>{format.name}</span>
+                  <small>{format.description}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="format-limit">
+            <small>文件大小限制: {MultiFormatFileProcessor.getFileSizeLimit() / (1024 * 1024)}MB</small>
+          </p>
+        </div>
+
         <div className="test-section">
           <h4>测试文件上传</h4>
           <p>如果遇到问题，可以尝试上传一个简单的.txt文件进行测试</p>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => {
-              const testContent = "这是一个测试文件。\n\n用于验证文件上传功能是否正常工作。\n\n如果能看到这段文字，说明上传功能正常。"
-              const blob = new Blob([testContent], { type: 'text/plain' })
-              const testFile = new File([blob], 'test.txt', { type: 'text/plain' })
-              handleFile(testFile)
-            }}
-          >
-            创建测试文件
-          </button>
+          <div className="test-buttons">
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => {
+                const testContent = "这是一个测试文件。\n\n用于验证文件上传功能是否正常工作。\n\n如果能看到这段文字，说明上传功能正常。"
+                const blob = new Blob([testContent], { type: 'text/plain' })
+                const testFile = new File([blob], 'test.txt', { type: 'text/plain' })
+                handleFile(testFile)
+              }}
+            >
+              创建TXT测试文件
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => {
+                const testContent = "这是一个Word文档测试。\n\n用于验证Word文档上传功能是否正常工作。\n\n支持中文和英文内容。"
+                const blob = new Blob([testContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+                const testFile = new File([blob], 'test.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+                handleFile(testFile)
+              }}
+            >
+              创建DOCX测试文件
+            </button>
+          </div>
         </div>
       </div>
     </div>

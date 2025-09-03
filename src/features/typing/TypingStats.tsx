@@ -1,6 +1,6 @@
 import React from 'react'
 import { TypingStats as TypingStatsType } from '../types'
-import './TypingStats.css'
+import '../../styles/TypingStats.css'
 
 interface TypingStatsProps {
   stats: TypingStatsType

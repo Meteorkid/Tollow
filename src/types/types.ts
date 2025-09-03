@@ -2,7 +2,7 @@ export interface TextContent {
   title: string
   content: string
   source: string
-  type: 'text' | 'epub'
+  type: 'text' | 'epub' | 'doc' | 'docx' | 'pdf'
 }
 
 export interface TypingStats {

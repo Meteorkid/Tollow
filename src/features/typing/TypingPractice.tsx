@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { TextContent } from '../types'
-import './TypingPractice.css'
+import '../../styles/TypingPractice.css'
 
 interface TypingPracticeProps {
   textContent: TextContent
