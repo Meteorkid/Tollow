@@ -1,11 +1,14 @@
 import mammoth from 'mammoth'
 import { parseDocx } from 'docx'
 import pdf from 'pdf-parse'
+import { marked } from 'marked'
+import TurndownService from 'turndown'
+import { htmlToText } from 'html-to-text'
 
 export interface ProcessedFile {
   title: string
   content: string
-  type: 'text' | 'epub' | 'doc' | 'docx' | 'pdf'
+  type: 'text' | 'epub' | 'doc' | 'docx' | 'pdf' | 'rtf' | 'odt' | 'html' | 'md'
 }
 
 /**
@@ -31,6 +34,16 @@ export class MultiFormatFileProcessor {
           return await this.processDocxFile(file)
         case 'pdf':
           return await this.processPdfFile(file)
+        case 'rtf':
+          return await this.processRtfFile(file)
+        case 'odt':
+          return await this.processOdtFile(file)
+        case 'html':
+        case 'htm':
+          return await this.processHtmlFile(file)
+        case 'md':
+        case 'markdown':
+          return await this.processMarkdownFile(file)
         default:
           throw new Error(`不支持的文件格式: ${fileExtension}`)
       }
@@ -121,6 +134,105 @@ export class MultiFormatFileProcessor {
   }
 
   /**
+   * 处理RTF文件
+   */
+  private static async processRtfFile(file: File): Promise<ProcessedFile> {
+    try {
+      const content = await this.readFileAsText(file)
+      // RTF文件包含格式化标记，需要清理
+      const cleanContent = content
+        .replace(/\\[a-z]+\d*\s?/g, '') // 移除RTF控制字符
+        .replace(/\{[^}]*\}/g, '') // 移除RTF分组
+        .replace(/\s+/g, ' ') // 合并多个空格
+        .trim()
+      
+      return {
+        title: this.extractTitle(file.name),
+        content: cleanContent,
+        type: 'rtf'
+      }
+    } catch (error) {
+      throw new Error(`RTF文件解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
+  /**
+   * 处理ODT文件
+   */
+  private static async processOdtFile(file: File): Promise<ProcessedFile> {
+    try {
+      const arrayBuffer = await this.readFileAsArrayBuffer(file)
+      // ODT是ZIP格式，包含XML文件，这里简化处理
+      const content = await this.readFileAsText(file)
+      const cleanContent = content
+        .replace(/<[^>]*>/g, '') // 移除XML标签
+        .replace(/\s+/g, ' ') // 合并多个空格
+        .trim()
+      
+      return {
+        title: this.extractTitle(file.name),
+        content: cleanContent,
+        type: 'odt'
+      }
+    } catch (error) {
+      throw new Error(`ODT文件解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
+  /**
+   * 处理HTML文件
+   */
+  private static async processHtmlFile(file: File): Promise<ProcessedFile> {
+    try {
+      const content = await this.readFileAsText(file)
+      // 使用html-to-text库提取纯文本
+      const textContent = htmlToText(content, {
+        wordwrap: 80,
+        preserveNewlines: true,
+        selectors: [
+          { selector: 'script', format: 'skip' },
+          { selector: 'style', format: 'skip' },
+          { selector: 'nav', format: 'skip' },
+          { selector: 'header', format: 'skip' },
+          { selector: 'footer', format: 'skip' }
+        ]
+      })
+      
+      return {
+        title: this.extractTitle(file.name),
+        content: textContent,
+        type: 'html'
+      }
+    } catch (error) {
+      throw new Error(`HTML文件解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
+  /**
+   * 处理Markdown文件
+   */
+  private static async processMarkdownFile(file: File): Promise<ProcessedFile> {
+    try {
+      const content = await this.readFileAsText(file)
+      // 使用marked库解析Markdown
+      const htmlContent = marked(content)
+      // 转换为纯文本
+      const textContent = htmlToText(htmlContent, {
+        wordwrap: 80,
+        preserveNewlines: true
+      })
+      
+      return {
+        title: this.extractTitle(file.name),
+        content: textContent,
+        type: 'md'
+      }
+    } catch (error) {
+      throw new Error(`Markdown文件解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
+  /**
    * 读取文件为文本
    */
   private static readFileAsText(file: File): Promise<string> {
@@ -178,7 +290,11 @@ export class MultiFormatFileProcessor {
       { extension: 'epub', name: '电子书', description: 'EPUB格式的电子书文件' },
       { extension: 'doc', name: 'Word文档', description: 'Microsoft Word 97-2003文档' },
       { extension: 'docx', name: 'Word文档', description: 'Microsoft Word 2007+文档' },
-      { extension: 'pdf', name: 'PDF文档', description: 'Adobe PDF文档' }
+      { extension: 'pdf', name: 'PDF文档', description: 'Adobe PDF文档' },
+      { extension: 'rtf', name: '富文本文件', description: 'Rich Text Format文档' },
+      { extension: 'odt', name: 'OpenDocument', description: 'OpenDocument文本格式' },
+      { extension: 'html', name: '网页文件', description: 'HTML网页文档' },
+      { extension: 'md', name: 'Markdown', description: 'Markdown标记语言文件' }
     ]
   }
 
@@ -186,7 +302,7 @@ export class MultiFormatFileProcessor {
    * 检查文件格式是否支持
    */
   static isFormatSupported(fileName: string): boolean {
-    const supportedExtensions = ['txt', 'epub', 'doc', 'docx', 'pdf']
+    const supportedExtensions = ['txt', 'epub', 'doc', 'docx', 'pdf', 'rtf', 'odt', 'html', 'htm', 'md', 'markdown']
     const fileExtension = fileName.toLowerCase().split('.').pop() || ''
     return supportedExtensions.includes(fileExtension)
   }
