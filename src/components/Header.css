@@ -1,0 +1,50 @@
+.header {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  color: white;
+  padding: 60px 0;
+  margin-bottom: 60px;
+}
+
+.header-content {
+  text-align: center;
+}
+
+.logo {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  letter-spacing: -0.02em;
+}
+
+.logo-icon {
+  font-size: 4rem;
+}
+
+.tagline {
+  font-size: 1.4rem;
+  opacity: 0.9;
+  font-weight: 400;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.header-features {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.feature {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
