@@ -1,0 +1,47 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md);
+}
+
+/* 主题相关样式 */
+.theme-light {
+  --auto-background: #ffffff;
+  --auto-surface: #f8f9fa;
+  --auto-text: #212529;
+  --auto-text-secondary: #6c757d;
+  --auto-border: #dee2e6;
+  --auto-shadow: rgba(0, 0, 0, 0.1);
+}
+
+.theme-dark {
+  --auto-background: #121212;
+  --auto-surface: #1e1e1e;
+  --auto-text: #ffffff;
+  --auto-text-secondary: #b0b0b0;
+  --auto-border: #2d2d2d;
+  --auto-shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-main {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding: var(--spacing-xs);
+  }
+}
