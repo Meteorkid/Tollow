@@ -1,5 +1,7 @@
 # 打字练习网站
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 一个名为Tollow的打字练习网站，支持导入图书和文本文件，提供实时打字练习和统计功能。
 
 ## ✨ 功能特点
@@ -106,7 +108,19 @@ src/
 
 ## 📄 许可证
 
-MIT License
+本项目采用 [MIT 许可证](LICENSE) 开源。
+
+MIT许可证允许任何人自由使用、修改和分发你的代码，同时为你提供法律保护。这是最受欢迎的开源许可证之一，被React、Vue.js等知名项目采用。
+
+**主要权限：**
+- ✅ 商业使用
+- ✅ 修改和分发
+- ✅ 私人使用
+- ✅ 专利使用
+
+**主要限制：**
+- ❌ 作者不承担任何责任
+- ❌ 必须包含原始许可证和版权声明
 
 ## 🤝 贡献
 
