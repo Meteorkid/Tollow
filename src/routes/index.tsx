@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import LoadingSpinner from '../shared/components/LoadingSpinner'
 import ErrorBoundary from '../shared/components/ErrorBoundary'
@@ -11,6 +11,7 @@ const Practice = React.lazy(() => import('../features/typing/Practice'))
 const Profile = React.lazy(() => import('../features/profile/Profile'))
 const Settings = React.lazy(() => import('../features/settings/Settings'))
 const NotFound = React.lazy(() => import('../shared/components/NotFound'))
+const EnhancedAnalyticsDashboard = React.lazy(() => import('../shared/components/EnhancedAnalyticsDashboard'))
 
 // 路由守卫组件
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,43 +34,42 @@ const LoadingFallback: React.FC = () => (
 // 路由配置
 export const AppRouter: React.FC = () => {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* 默认路由 */}
-            <Route path="/" element={<Navigate to="/library" replace />} />
-            
-            {/* 主要功能路由 */}
-            <Route path="/library" element={<Library />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/practice" element={<Practice />} />
-            
-            {/* 需要认证的路由 */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* 404页面 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* 默认路由 */}
+          <Route path="/" element={<Navigate to="/library" replace />} />
+          
+          {/* 主要功能路由 */}
+          <Route path="/library" element={<Library />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/practice" element={<Practice />} />
+          <Route path="/analytics" element={<EnhancedAnalyticsDashboard />} />
+          
+          {/* 需要认证的路由 */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* 404页面 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   )
 }
 
@@ -79,6 +79,7 @@ export const ROUTES = {
   LIBRARY: '/library',
   UPLOAD: '/upload',
   PRACTICE: '/practice',
+  ANALYTICS: '/analytics',
   PROFILE: '/profile',
   SETTINGS: '/settings',
 } as const

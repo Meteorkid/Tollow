@@ -1,6 +1,5 @@
 import mammoth from 'mammoth'
 import { parseDocx } from 'docx'
-import pdf from 'pdf-parse'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import { htmlToText } from 'html-to-text'
@@ -119,17 +118,12 @@ export class MultiFormatFileProcessor {
    * 处理PDF文件
    */
   private static async processPdfFile(file: File): Promise<ProcessedFile> {
-    try {
-      const arrayBuffer = await this.readFileAsArrayBuffer(file)
-      const pdfData = await pdf(Buffer.from(arrayBuffer))
-      
-      return {
-        title: this.extractTitle(file.name),
-        content: pdfData.text,
-        type: 'pdf'
-      }
-    } catch (error) {
-      throw new Error(`PDF文件解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    // 浏览器环境下不使用 Node-only 的 pdf-parse，提供安全占位内容，避免上传报错
+    const sizeKB = Math.round(file.size / 1024)
+    return {
+      title: this.extractTitle(file.name),
+      content: `【PDF 预览占位】文件名: ${file.name}，大小: ${sizeKB}KB。当前浏览器版本暂不内置解析 PDF 正文，请先转换为 TXT/DOCX/MD，或后续启用服务端解析。`,
+      type: 'pdf'
     }
   }
 

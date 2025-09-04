@@ -259,11 +259,13 @@ export interface ThemeStore {
   applyTheme: () => void
 }
 
+let isApplyingTheme = false
+
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
-      currentTheme: 'auto',
-      themeConfig: themes.auto,
+      currentTheme: 'light',
+      themeConfig: themes.light,
       
       setTheme: (theme: Theme) => {
         set({ 
@@ -287,41 +289,44 @@ export const useThemeStore = create<ThemeStore>()(
       },
       
       applyTheme: () => {
-        const { currentTheme, themeConfig } = get()
-        
-        if (typeof document === 'undefined') return
-        
-        const root = document.documentElement
-        
-        // 应用CSS变量
-        Object.entries(themeConfig.colors).forEach(([key, value]) => {
-          root.style.setProperty(`--color-${key}`, value)
-        })
-        
-        // 应用其他主题属性
-        root.style.setProperty('--border-radius', themeConfig.borderRadius)
-        root.style.setProperty('--transition-fast', themeConfig.transitions.fast)
-        root.style.setProperty('--transition-normal', themeConfig.transitions.normal)
-        root.style.setProperty('--transition-slow', themeConfig.transitions.slow)
-        
-        // 设置body类名
-        document.body.className = `theme-${currentTheme}`
-        
-        // 如果是自动主题，监听系统主题变化
-        if (currentTheme === 'auto') {
-          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-          const handleChange = () => {
-            const systemTheme = get().getSystemTheme()
-            set({ themeConfig: themes[systemTheme] })
-            get().applyTheme()
+        if (isApplyingTheme) return
+        isApplyingTheme = true
+        try {
+          const { currentTheme, themeConfig } = get()
+          if (typeof document === 'undefined') return
+          const root = document.documentElement
+
+          // 应用CSS变量
+          Object.entries(themeConfig.colors).forEach(([key, value]) => {
+            root.style.setProperty(`--color-${key}`, value)
+          })
+
+          // 应用其他主题属性
+          root.style.setProperty('--border-radius', themeConfig.borderRadius)
+          root.style.setProperty('--transition-fast', themeConfig.transitions.fast)
+          root.style.setProperty('--transition-normal', themeConfig.transitions.normal)
+          root.style.setProperty('--transition-slow', themeConfig.transitions.slow)
+
+          // 设置body类名
+          document.body.className = `theme-${currentTheme}`
+
+          // 自动主题：监听系统主题并直接更新变量（避免递归调用 applyTheme）
+          if (currentTheme === 'auto') {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+            const applySystemTheme = () => {
+              const systemTheme = get().getSystemTheme()
+              const cfg = themes[systemTheme]
+              set({ themeConfig: cfg })
+              // 直接更新CSS变量
+              Object.entries(cfg.colors).forEach(([key, value]) => {
+                root.style.setProperty(`--color-${key}`, value)
+              })
+            }
+            mediaQuery.addEventListener('change', applySystemTheme)
+            applySystemTheme()
           }
-          
-          mediaQuery.addEventListener('change', handleChange)
-          
-          // 立即应用系统主题
-          const systemTheme = get().getSystemTheme()
-          set({ themeConfig: themes[systemTheme] })
-          get().applyTheme()
+        } finally {
+          isApplyingTheme = false
         }
       },
     }),

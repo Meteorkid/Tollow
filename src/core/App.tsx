@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { BrowserRouter } from 'react-router-dom'
 import { AppRouter } from '../routes'
 import { useAppStore } from '../stores/appStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -45,12 +46,14 @@ function App() {
   }, [setUser, updateSettings, applyTheme])
 
   return (
-    <div className="App">
-      <Header />
-      <main className="app-main">
-        <AppRouter />
-      </main>
-    </div>
+    <BrowserRouter>
+      <div className="App">
+        <Header />
+        <main className="app-main">
+          <AppRouter />
+        </main>
+      </div>
+    </BrowserRouter>
   )
 }
 

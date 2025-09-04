@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  # 主应用服务
+  tollow-app:
+    build:
+      context: .
+      target: production
+    container_name: tollow-app
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - VITE_APP_ENV=production
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      - tollow-redis
+    networks:
+      - tollow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis缓存服务
+  tollow-redis:
+    image: redis:7-alpine
+    container_name: tollow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - tollow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL数据库服务
+  tollow-postgres:
+    image: postgres:15-alpine
+    container_name: tollow-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: tollow
+      POSTGRES_USER: tollow_user
+      POSTGRES_PASSWORD: tollow_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tollow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tollow_user -d tollow"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx反向代理服务
+  tollow-nginx:
+    image: nginx:alpine
+    container_name: tollow-nginx
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - tollow-app
+    networks:
+      - tollow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 监控服务
+  tollow-monitoring:
+    image: prom/prometheus:latest
+    container_name: tollow-monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - tollow-network
+    restart: unless-stopped
+
+  # Alertmanager 告警服务
+  tollow-alertmanager:
+    image: prom/alertmanager:latest
+    container_name: tollow-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    networks:
+      - tollow-network
+    restart: unless-stopped
+
+  # Grafana可视化服务
+  tollow-grafana:
+    image: grafana/grafana:latest
+    container_name: tollow-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - tollow-monitoring
+    networks:
+      - tollow-network
+    restart: unless-stopped
+
+  # 日志聚合服务
+  tollow-loki:
+    image: grafana/loki:latest
+    container_name: tollow-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./docker/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - tollow-network
+    restart: unless-stopped
+
+  # 日志收集服务
+  tollow-promtail:
+    image: grafana/promtail:latest
+    container_name: tollow-promtail
+    volumes:
+      - ./docker/promtail/config.yml:/etc/promtail/config.yml
+      - ./logs:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - tollow-loki
+    networks:
+      - tollow-network
+    restart: unless-stopped
+
+  # 开发环境服务
+  tollow-dev:
+    build:
+      context: .
+      target: development
+    container_name: tollow-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - tollow-network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # 测试环境服务
+  tollow-test:
+    build:
+      context: .
+      target: test
+    container_name: tollow-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - tollow-network
+    profiles:
+      - test
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+
+networks:
+  tollow-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

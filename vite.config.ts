@@ -25,7 +25,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          utils: ['mammoth', 'pdf-parse', 'marked', 'html-to-text'],
+          utils: ['mammoth', 'marked', 'html-to-text'],
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',

@@ -1,0 +1,71 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'tollow-monitoring'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # Tollow应用监控
+  - job_name: 'tollow-app'
+    static_configs:
+      - targets: ['tollow-app:8080']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+
+  # Nginx监控
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['tollow-nginx:8081']
+    metrics_path: /nginx_status
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # Redis监控
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['tollow-redis:6379']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # PostgreSQL监控
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['tollow-postgres:5432']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node Exporter (系统指标)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # 自定义应用指标
+  - job_name: 'tollow-custom-metrics'
+    static_configs:
+      - targets: ['tollow-app:8080']
+    metrics_path: /api/metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true

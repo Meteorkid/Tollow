@@ -1,0 +1,241 @@
+groups:
+  - name: tollow-app-alerts
+    rules:
+      # 应用健康检查告警
+      - alert: TollowAppDown
+        expr: up{job="tollow-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: tollow-app
+        annotations:
+          summary: "Tollow应用服务不可用"
+          description: "Tollow应用服务已停止响应超过1分钟"
+
+      # 应用响应时间告警
+      - alert: TollowAppHighResponseTime
+        expr: http_request_duration_seconds{job="tollow-app"} > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "Tollow应用响应时间过高"
+          description: "应用响应时间超过2秒，当前值: {{ $value }}s"
+
+      # 应用错误率告警
+      - alert: TollowAppHighErrorRate
+        expr: rate(http_requests_total{job="tollow-app", status=~"5.."}[5m]) / rate(http_requests_total{job="tollow-app"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "Tollow应用错误率过高"
+          description: "应用错误率超过5%，当前值: {{ $value | humanizePercentage }}"
+
+      # 内存使用率告警
+      - alert: TollowAppHighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "Tollow应用内存使用率过高"
+          description: "内存使用率超过85%，当前值: {{ $value | humanizePercentage }}"
+
+      # CPU使用率告警
+      - alert: TollowAppHighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "Tollow应用CPU使用率过高"
+          description: "CPU使用率超过80%，当前值: {{ $value }}%"
+
+  - name: tollow-infrastructure-alerts
+    rules:
+      # Nginx服务告警
+      - alert: NginxDown
+        expr: up{job="nginx"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: nginx
+        annotations:
+          summary: "Nginx服务不可用"
+          description: "Nginx反向代理服务已停止响应"
+
+      # Nginx连接数告警
+      - alert: NginxHighConnections
+        expr: nginx_http_connections_current > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+        annotations:
+          summary: "Nginx连接数过高"
+          description: "Nginx当前连接数超过1000，当前值: {{ $value }}"
+
+      # Redis服务告警
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis服务不可用"
+          description: "Redis缓存服务已停止响应"
+
+      # Redis内存使用率告警
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis内存使用率过高"
+          description: "Redis内存使用率超过85%，当前值: {{ $value | humanizePercentage }}"
+
+      # PostgreSQL服务告警
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "PostgreSQL服务不可用"
+          description: "PostgreSQL数据库服务已停止响应"
+
+      # PostgreSQL连接数告警
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+        annotations:
+          summary: "PostgreSQL连接数过高"
+          description: "PostgreSQL当前连接数超过100，当前值: {{ $value }}"
+
+  - name: tollow-performance-alerts
+    rules:
+      # 页面加载时间告警
+      - alert: HighPageLoadTime
+        expr: tollow_page_load_time_seconds > 3
+        for: 10m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "页面加载时间过长"
+          description: "页面加载时间超过3秒，当前值: {{ $value }}s"
+
+      # API响应时间告警
+      - alert: HighAPIResponseTime
+        expr: tollow_api_response_time_seconds > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "API响应时间过长"
+          description: "API响应时间超过1秒，当前值: {{ $value }}s"
+
+      # 用户会话时长告警
+      - alert: LowUserSessionDuration
+        expr: tollow_user_session_duration_seconds < 60
+        for: 15m
+        labels:
+          severity: info
+          service: tollow-app
+        annotations:
+          summary: "用户会话时长过短"
+          description: "用户平均会话时长少于1分钟，当前值: {{ $value }}s"
+
+      # 错误率告警
+      - alert: HighErrorRate
+        expr: rate(tollow_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "应用错误率过高"
+          description: "应用错误率超过10%，当前值: {{ $value }}"
+
+  - name: tollow-business-alerts
+    rules:
+      # 用户活跃度告警
+      - alert: LowUserActivity
+        expr: tollow_active_users_total < 10
+        for: 1h
+        labels:
+          severity: info
+          service: tollow-app
+        annotations:
+          summary: "用户活跃度较低"
+          description: "当前活跃用户数少于10，当前值: {{ $value }}"
+
+      # 文件上传失败率告警
+      - alert: HighFileUploadFailureRate
+        expr: rate(tollow_file_upload_failures_total[5m]) / rate(tollow_file_uploads_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "文件上传失败率过高"
+          description: "文件上传失败率超过10%，当前值: {{ $value | humanizePercentage }}"
+
+      # 打字练习完成率告警
+      - alert: LowTypingCompletionRate
+        expr: rate(tollow_typing_completions_total[5m]) / rate(tollow_typing_sessions_total[5m]) < 0.5
+        for: 15m
+        labels:
+          severity: info
+          service: tollow-app
+        annotations:
+          summary: "打字练习完成率较低"
+          description: "打字练习完成率低于50%，当前值: {{ $value | humanizePercentage }}"
+
+  - name: tollow-security-alerts
+    rules:
+      # 异常登录告警
+      - alert: UnusualLoginActivity
+        expr: rate(tollow_failed_logins_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "检测到异常登录活动"
+          description: "失败登录次数异常增加，当前值: {{ $value }}/min"
+
+      # 异常请求告警
+      - alert: UnusualRequestPattern
+        expr: rate(tollow_http_requests_total{status=~"4.."}[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "检测到异常请求模式"
+          description: "4xx错误请求异常增加，当前值: {{ $value }}/min"
+
+      # 文件上传异常告警
+      - alert: UnusualFileUploads
+        expr: rate(tollow_file_uploads_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: tollow-app
+        annotations:
+          summary: "检测到异常文件上传活动"
+          description: "文件上传频率异常增加，当前值: {{ $value }}/min"

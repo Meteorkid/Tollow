@@ -4,6 +4,7 @@ import { ROUTES } from '../../routes'
 import { useAppStore } from '../../stores/appStore'
 import { usePerformanceMonitor } from '../../hooks/usePerformanceMonitor'
 import { logger } from '../../utils/logger'
+import '../../styles/BookLibrary.css'
 
 const Library: React.FC = () => {
   const navigate = useNavigate()
@@ -82,26 +83,27 @@ const Library: React.FC = () => {
   }
 
   return (
-    <div className="library">
-      <div className="library-header">
-        <h1>📚 书库</h1>
-        <p>选择您喜欢的文本开始打字练习</p>
-        <button onClick={handleFileUpload} className="btn btn-primary">
+    <div className="book-library">
+      <section className="library-header">
+        <h1>📚 开始你的打字之旅</h1>
+        <p>选择一本书，或上传你的文档，沉浸式练习与提升打字能力。</p>
+        <button onClick={handleFileUpload} className="btn btn-primary" aria-label="上传文件">
           📁 上传文件
         </button>
-      </div>
+      </section>
 
-      <div className="library-content">
+      <section className="books-section">
+        <h2>精选内容</h2>
         <div className="books-grid">
           {books.map((book) => (
             <div key={book.id} className="book-card" onClick={() => handleBookSelect(book)}>
-              <div className="book-cover">{book.cover}</div>
+              <div className="book-cover" aria-hidden>{book.cover}</div>
               <div className="book-info">
                 <h3>{book.title}</h3>
                 <p className="book-author">作者: {book.author}</p>
                 <p className="book-description">{book.description}</p>
                 <div className="book-meta">
-                  <span className="difficulty difficulty-{book.difficulty.toLowerCase()}">
+                  <span className={`difficulty difficulty-${book.difficulty.toLowerCase()}`}>
                     {book.difficulty}
                   </span>
                   <span className="word-count">{book.wordCount} 字</span>
@@ -111,7 +113,28 @@ const Library: React.FC = () => {
             </div>
           ))}
         </div>
-      </div>
+      </section>
+
+      <section className="features-section">
+        <h2>为什么选择 Tollow</h2>
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">⚡️</div>
+            <h3>沉浸练习</h3>
+            <p>在原文上直接打字，保持注意力与节奏，专注于正确性与流畅度。</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">📈</div>
+            <h3>可视化统计</h3>
+            <p>速度、准确率、错误分布一目了然，针对性改进更高效。</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">🧩</div>
+            <h3>多格式支持</h3>
+            <p>TXT/MD/HTML/DOCX/PDF 等常见文本格式，快速导入随时练习。</p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

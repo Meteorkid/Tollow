@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 // 模拟浏览器API
 Object.defineProperty(window, 'matchMedia', {
@@ -38,6 +39,33 @@ Object.defineProperty(window, 'performance', {
       usedJSHeapSize: 1000000,
       totalJSHeapSize: 2000000,
       jsHeapSizeLimit: 4000000,
+    },
+  },
+})
+
+// 模拟caches API
+Object.defineProperty(window, 'caches', {
+  writable: true,
+  value: {
+    open: vi.fn(),
+    match: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    keys: vi.fn(),
+  },
+})
+
+// 模拟Service Worker API
+Object.defineProperty(window, 'navigator', {
+  writable: true,
+  value: {
+    ...window.navigator,
+    serviceWorker: {
+      register: vi.fn(),
+      getRegistration: vi.fn(),
+      getRegistrations: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
     },
   },
 })

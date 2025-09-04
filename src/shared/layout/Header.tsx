@@ -1,22 +1,30 @@
 import React from 'react'
 import '../../styles/Header.css'
+import { Link, useLocation } from 'react-router-dom'
 
 const Header: React.FC = () => {
+  const { pathname } = useLocation()
+  const nav = [
+    { to: '/library', label: '书库' },
+    { to: '/upload', label: '上传' },
+    { to: '/practice', label: '练习' },
+    { to: '/analytics', label: '分析' },
+  ]
+
   return (
     <header className="header">
-      <div className="container">
-        <div className="header-content">
-          <h1 className="logo">
-            <span className="logo-icon">⌨️</span>
-            Tollow
-          </h1>
-          <p className="tagline">通过重新输入整本书来练习打字</p>
-          <div className="header-features">
-            <span className="feature">提升打字速度</span>
-            <span className="feature">提高准确性</span>
-            <span className="feature">享受阅读乐趣</span>
-          </div>
-        </div>
+      <div className="container header-bar">
+        <Link to="/library" className="brand">
+          <span className="logo-icon">⌨️</span>
+          <span className="brand-name">Tollow</span>
+        </Link>
+        <nav className="nav">
+          {nav.map(item => (
+            <Link key={item.to} to={item.to} className={`nav-link ${pathname === item.to ? 'active' : ''}`}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   )
