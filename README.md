@@ -14,6 +14,20 @@
 - **暂停/继续**：随时暂停练习，不影响进度
 - **响应式设计**：桌面端、平板端、移动端自适应
 
+## 截图
+
+### 书库首页
+
+![书库首页](docs/screenshots/tollow-library.png)
+
+### 打字练习
+
+![打字练习](docs/screenshots/tollow-practice.png)
+
+### 数据分析面板
+
+![数据分析面板](docs/screenshots/tollow-analytics.png)
+
 ## 技术栈
 
 | 层 | 技术 |
