@@ -49,7 +49,7 @@ Tollow/
 │   └── 📁 hooks/             # 自定义Hooks
 ├── 📁 dist/                  # 构建输出
 ├── .gitignore                # Git忽略文件
-├── LICENSE                   # MIT开源许可证
+├── LICENSE                   # 源码可用-非商业许可证
 ├── README.md                 # 项目说明
 └── package.json              # 项目配置
 ```
