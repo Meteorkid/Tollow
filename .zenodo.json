@@ -1,0 +1,37 @@
+{
+  "title": "Tollow: Typing Practice System",
+  "description": "<p>Tollow is a typing practice system with structured drills, progress tracking and a self-hosted deployment option. It is distributed free of charge as part of the Meteor Store lab lineup.</p>",
+  "creators": [
+    {
+      "name": "Liu, Xinyu",
+      "orcid": "0009-0000-6888-0110",
+      "affiliation": "Guangdong Polytechnic Normal University"
+    },
+    {
+      "name": "Ding, Haochen",
+      "orcid": "0009-0006-1413-7624"
+    }
+  ],
+  "upload_type": "software",
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "typing practice",
+    "education",
+    "web application",
+    "self-hosted"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://imagentx.top/products/tollow",
+      "relation": "isSupplementedBy",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://github.com/Meteorkid/Tollow",
+      "relation": "isIdenticalTo",
+      "resource_type": "software"
+    }
+  ]
+}
