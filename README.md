@@ -1,5 +1,5 @@
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
+[![License: Source-Available Non-Commercial](https://img.shields.io/badge/license-source--available%20non--commercial-orange)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)]()
 
 # Tollow
 
@@ -127,4 +127,4 @@ Tollow/
 
 ## License
 
-[MIT](LICENSE)
+[源码可用 · 非商业许可证](LICENSE)
