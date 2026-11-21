@@ -1,6 +1,6 @@
 {
   "title": "Tollow: Typing Practice System",
-  "description": "<p>Tollow is a typing practice system with structured drills, progress tracking and a self-hosted deployment option. It is distributed free of charge as part of the Meteor Store lab lineup.</p>",
+  "description": "<p>Tollow is a typing practice system with structured drills, progress tracking and a self-hosted deployment option. It is distributed free of charge as part of the Meteor Store lab lineup.</p><p>Licensed under a source-available non-commercial license; see LICENSE in the repository.</p>",
   "creators": [
     {
       "name": "Liu, Xinyu",
@@ -13,7 +13,7 @@
     }
   ],
   "upload_type": "software",
-  "license": "Apache-2.0",
+  "license": "other-closed",
   "access_right": "open",
   "language": "eng",
   "keywords": [
